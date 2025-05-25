@@ -7,17 +7,16 @@ class Trip(models.Model):
     user_id = models.CharField(max_length=100, blank=True, null=True)
     age = models.IntegerField()
     gender = models.CharField(max_length=100, blank=True, null=True)
-    socialStatus = models.CharField(max_length=100, blank=True, null=True)
-    financialSituation = models.CharField(max_length=100, blank=True, null=True)
+    socialstatus = models.CharField(max_length=100, blank=True, null=True)
+    financialsituation = models.CharField(max_length=100, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     address = models.CharField(max_length=200, blank=True, null=True)
-    startPlaceType = models.CharField(max_length=50)
-    endPlaceType = models.CharField(max_length=50)
+    startplacetype = models.CharField(max_length=100)
+    endplacetype = models.CharField(max_length=100)
     cost = models.IntegerField()
-    transportationCosts = models.CharField(max_length=50, blank=True, null=True)
+    transportationcosts = models.CharField(max_length=100, blank=True, null=True)
     general_comment = models.CharField(max_length=100, blank=True, null=True)
     trip_comment = models.CharField(max_length=100, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Trip {self.trip_uid}"
