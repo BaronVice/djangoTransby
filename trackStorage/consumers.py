@@ -4,6 +4,7 @@ import json
 import logging
 from asgiref.sync import sync_to_async
 from .datastructures import *
+from .utils import split_activities, set_v_or_else_mean, existingActivitiesLen, to_ignore
 import asyncio
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,15 @@ class TransportConsumer(AsyncWebsocketConsumer):
         """Thread-safe access to the global model pool"""
         return apps.get_app_config('trackStorage').model_pool
     
+    @property
+    def mean_values(self) -> dict:
+        """Thread-safe access to the global model pool"""
+        return apps.get_app_config('trackStorage').mean_values
+    
+    @property
+    def mean_values_len(self) -> int:
+        """Thread-safe access to the global model pool"""
+        return apps.get_app_config('trackStorage').mean_values_len
 
     async def connect(self):
         """Connection already authenticated by ASGI middleware"""
@@ -48,16 +58,34 @@ class TransportConsumer(AsyncWebsocketConsumer):
                 await self.send_error("No sensors in data. Any chance you use old version?")
                 return
             
+            sensor_data = split_activities(data['registeredActivities'])
+            sensor_data_len = 0
+            k_lower = ""
+            for k,v in data.items():
+                k_lower = k.lower()
+
+                if k_lower in to_ignore: continue
+
+                if k_lower not in self.mean_values:
+                    logger.warning(f"{k.lower()} is not expected, skipped")
+                    continue
+                
+                sensor_data[k_lower] = set_v_or_else_mean(v, self.mean_values[k_lower])
+                sensor_data_len += 1
+            
+            if sensor_data_len != self.mean_values_len:
+                raise Exception(f'sensor_data_len: {sensor_data_len - existingActivitiesLen} != {self.mean_values_len}')
+
             # Process prediction (reuse your existing logic)
-            prediction = await self.predict_transport(data)
+            prediction = await self.predict_transport(sensor_data)
             
             # Send response
             await self.send(json.dumps({
                 "type": "transport_prediction",
                 "point_id": data['point_id'],
-                "transport_type": prediction['mode'],
-                "confidence": prediction['confidence'],
-            }))
+                "probabilities": prediction,
+            }, ensure_ascii=False))
+
             
         except json.JSONDecodeError:
             await self.send_error("Invalid JSON format")
@@ -95,5 +123,3 @@ class TransportConsumer(AsyncWebsocketConsumer):
             if model:
                 await sync_to_async(self.model_pool.release, thread_sensitive=False)(model)
                 logger.info(f"Classifier released {model.id}")
-
-    

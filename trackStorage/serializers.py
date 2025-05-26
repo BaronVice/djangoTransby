@@ -16,6 +16,7 @@ class TripSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         points_data = validated_data.pop('trip')
+        
         trip = Trip.objects.create(**validated_data)
         
         # Create all points for this trip
