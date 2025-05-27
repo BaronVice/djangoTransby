@@ -1,7 +1,6 @@
 import queue
 import pickle
 
-from sklearn.ensemble import RandomForestClassifier
 
 class ReusableClassifier:
     def __init__(self, id):
@@ -26,7 +25,6 @@ class ReusableClassifier:
         x = [[data[feat] for feat in self.feature_names]]
 
         predictions = {str(k): float(v) for k, v in zip(self.classifier.classes_, self.classifier.predict_proba(x)[0])}
-        print(predictions)
         return predictions
 
 
