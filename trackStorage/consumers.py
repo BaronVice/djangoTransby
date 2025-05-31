@@ -52,7 +52,8 @@ class TransportConsumer(AsyncWebsocketConsumer):
         """Handle incoming sensor data"""
         try:
             data = json.loads(text_data)
-            
+            data = data['request']
+
             # Validate required fields
             if 'accelerometerMin' not in data:
                 await self.send_error("No sensors in data. Any chance you use old version?")

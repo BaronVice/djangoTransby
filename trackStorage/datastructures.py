@@ -5,7 +5,7 @@ import pickle
 class ReusableClassifier:
     def __init__(self, id):
         self.classifier = None
-        with open("trackStorage\\classifier.pkl", "rb") as file:
+        with open("trackStorage/classifier.pkl", "rb") as file:
             self.classifier = pickle.load(file)
             
         self.id = id
